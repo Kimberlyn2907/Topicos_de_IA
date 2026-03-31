@@ -1,3 +1,8 @@
+#NOTA: El código es interactivo, el ususario puede encontrar lo optimo y decidir si seguir iterando para
+#encontrar una mejor solución. El proceso mientras no encuentre uno mejor va a seguir preguntando cada vez,
+#y si encuentra va a mostrarlo en pantalla, una vez que le digan que no (N), el proceso se detendrá
+#para proceder a enviar a pantalla los resultados obtenidos.
+
 import pandas as pd
 import random
 from collections import deque
