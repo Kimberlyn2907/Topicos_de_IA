@@ -1,6 +1,6 @@
-# ============================================================
+# -----------------------------------------------------------
 # PROBLEMA DEL AGENTE VIAJERO CON ALGORITMOS GENÉTICOS
-# ============================================================
+# -----------------------------------------------------------
 
 import random
 import matplotlib.pyplot as plt
@@ -44,9 +44,9 @@ def crearRuta(ciudades):
     return random.sample(ciudades, len(ciudades))
 
 
-# ------------------------------------------------------------
+# -------------------------------------------------------------------------------------
 # Calcula la distancia total de una ruta, recorre ciudad por ciudad sumando distancias
-
+#--------------------------------------------------------------------------------------
 def distanciaRuta(ruta):
     distancia = 0
 
@@ -72,12 +72,14 @@ def distanciaRuta(ruta):
 # ------------------------------------------------------------
 # Función fitness
 # Mientras menor sea la distancia mejor sera el fitness
+#--------------------------------------------------------------
 def fitness(ruta):
     return 1 / distanciaRuta(ruta)
 
 
 # ------------------------------------------------------------
 # Se crea población inicial y genera varias rutas aleatorias
+#-------------------------------------------------------------
 def poblacionInicial(tamano):
 
     poblacion = []
@@ -91,6 +93,7 @@ def poblacionInicial(tamano):
 
 # ------------------------------------------------------------
 # Ordenar rutas segun su fitness
+#-------------------------------------------------------------
 def rankRutas(poblacion):
     resultados = {}
 
@@ -104,19 +107,21 @@ def rankRutas(poblacion):
 # ------------------------------------------------------------
 # Selección de individuos
 # Se usa elitismo + ruleta
+#-------------------------------------------------------------
 def seleccion(popRanked, eliteSize):
 
     resultados = []
 
-    # ---------------------------
+    # ---------------------------------
     # ELITISMO
     # Se guarda los mejores individuos
+    #----------------------------------
     for i in range(eliteSize):
         resultados.append(popRanked[i][0])
 
     # ---------------------------
     # MÉTODO DE RULETA
-    
+    #----------------------------
     # Se obtene fitness de cada individuo
     fitnesses = [x[1] for x in popRanked]
 
@@ -147,6 +152,7 @@ def seleccion(popRanked, eliteSize):
 # ------------------------------------------------------------
 # Crea mating pool
 # grupo de padres para reproducción
+#-------------------------------------------------------------
 def matingPool(poblacion, resultadosSeleccion):
 
     pool = []
@@ -159,6 +165,7 @@ def matingPool(poblacion, resultadosSeleccion):
 
 # ------------------------------------------------------------
 # Cruce (Crossover)
+#-------------------------------------------------------------
 # Combina dos padres para crear un hijo
 def crossover(parent1, parent2):
 
@@ -185,6 +192,7 @@ def crossover(parent1, parent2):
 
 # ------------------------------------------------------------
 # Aplica crossover a toda la población
+#-------------------------------------------------------------    
 def crossoverPoblacion(pool, eliteSize):
 
     hijos = []
@@ -195,12 +203,10 @@ def crossoverPoblacion(pool, eliteSize):
     # Mezcla individuos
     mezcla = random.sample(pool, len(pool))
 
-    # ---------------------------
     # Conserva élite
     for i in range(eliteSize):
         hijos.append(pool[i])
 
-    # ---------------------------
     # Genera hijos
     for i in range(length):
 
@@ -216,6 +222,7 @@ def crossoverPoblacion(pool, eliteSize):
 
 # ------------------------------------------------------------
 # Mutación
+#-------------------------------------------------------------    
 # Intercambia ciudades aleatoriamente
 def mutacion(individuo, mutationRate):
 
@@ -238,6 +245,7 @@ def mutacion(individuo, mutationRate):
 
 # ------------------------------------------------------------
 # Aplica mutación a toda la población
+#-------------------------------------------------------------    
 def mutacionPoblacion(poblacion, mutationRate):
 
     poblacionMutada = []
@@ -252,6 +260,7 @@ def mutacionPoblacion(poblacion, mutationRate):
 
 # ------------------------------------------------------------
 # Se crea la siguiente generación
+#-------------------------------------------------------------    
 def siguienteGeneracion(actualGen,
                         eliteSize,
                         mutationRate):
@@ -288,6 +297,7 @@ def siguienteGeneracion(actualGen,
 
 # ------------------------------------------------------------
 # ALGORITMO GENÉTICO PRINCIPAL
+#--------------------------------------------------------------                            
 def algoritmoGenetico(
         tamanoPoblacion,
         eliteSize,
@@ -325,9 +335,9 @@ def algoritmoGenetico(
     return mejorRuta, progreso
 
 
-# ============================================================
+# ------------------------
 # EJECUCIÓN PRINCIPAL
-
+#-------------------------
 if __name__ == "__main__":
 
     # Ejecuta algoritmo genetico
@@ -341,9 +351,9 @@ if __name__ == "__main__":
     # Muestra mejor ruta encontrada
     print("Mejor ruta:", mejorRuta)
 
-    # ========================================================
+    # ----------------------------------
     # GRÁFICA DE EVOLUCIÓN
-    
+    #-----------------------------------
     plt.plot(progreso)
 
     plt.title("Evolución del Algoritmo Genético")
@@ -352,9 +362,9 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # ========================================================
+    # ------------------------------------------------
     # GRÁFICA DE LA RUTA ÓPTIMA
-    
+    #-------------------------------------------------
     # Coordenadas simuladas para visualizar ciudades
     
     coordenadas = {
@@ -417,9 +427,9 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # ========================================================
+    #---------------------------------------------
     # MOSTRAR RESULTADOS FINALES
-    
+    #---------------------------------------------
     print("\n==============================")
     print(" RUTA RECOMENDADA ")
     print("==============================\n")
