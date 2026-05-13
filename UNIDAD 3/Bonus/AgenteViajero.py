@@ -1,12 +1,13 @@
 # ============================================================
 # PROBLEMA DEL AGENTE VIAJERO CON ALGORITMOS GENÉTICOS
-# Utilizando matriz de distancias entre ciudades
 # ============================================================
 
 import random
 import matplotlib.pyplot as plt
 
-# Matriz de distancias
+# ------------------------------------------------------------
+# MATRIZ DE DISTANCIAS ENTRE CIUDADES
+# ------------------------------------------------------------
 
 datos = {
     "Madrid":       [0,303,442,223,252,654,737,458,555,279,726,456,876,467,614,249,709,368,435,530],
@@ -31,74 +32,111 @@ datos = {
     "Elche":        [530,244,683,478,349,271,337,456,185,864,864,515,443,678,200,437,752,634,798,0]
 }
 
+# Lista con los nombres de las ciudades
 ciudades = list(datos.keys())
 
-# Funciones del algoritmo genético
+# FUNCIONES DEL ALGORITMO GENÉTICO
+
+# Se crea una ruta aleatoria
+# random.sample mezcla las ciudades aleatoriamente
 
 def crearRuta(ciudades):
     return random.sample(ciudades, len(ciudades))
 
 
+# ------------------------------------------------------------
+# Calcula la distancia total de una ruta, recorre ciudad por ciudad sumando distancias
+
 def distanciaRuta(ruta):
     distancia = 0
 
     for i in range(len(ruta)):
+
+        # Ciudad actual
         origen = ruta[i]
 
+        # Si no es la ultima ciudad toma la siguiente como destino
         if i + 1 < len(ruta):
             destino = ruta[i + 1]
+
+        # Si es la ultima ciudad regresa a la ciudad inicial
         else:
             destino = ruta[0]
 
+        # Suma la distancia entre origen y destino
         distancia += datos[origen][ciudades.index(destino)]
 
     return distancia
 
 
+# ------------------------------------------------------------
+# Función fitness
+# Mientras menor sea la distancia mejor sera el fitness
 def fitness(ruta):
     return 1 / distanciaRuta(ruta)
 
 
+# ------------------------------------------------------------
+# Se crea población inicial y genera varias rutas aleatorias
 def poblacionInicial(tamano):
+
     poblacion = []
 
+    # Se crea tantas rutas como indique el tamaño
     for _ in range(tamano):
         poblacion.append(crearRuta(ciudades))
 
     return poblacion
 
 
+# ------------------------------------------------------------
+# Ordenar rutas segun su fitness
 def rankRutas(poblacion):
     resultados = {}
 
     for i in range(len(poblacion)):
         resultados[i] = fitness(poblacion[i])
 
+    # Se ordena de mayor fitness a menor
     return sorted(resultados.items(), key=lambda x: x[1], reverse=True)
 
 
+# ------------------------------------------------------------
+# Selección de individuos
+# Se usa elitismo + ruleta
 def seleccion(popRanked, eliteSize):
 
     resultados = []
 
-    # Elitismo
+    # ---------------------------
+    # ELITISMO
+    # Se guarda los mejores individuos
     for i in range(eliteSize):
         resultados.append(popRanked[i][0])
 
-    # Ruleta
+    # ---------------------------
+    # MÉTODO DE RULETA
+    
+    # Se obtene fitness de cada individuo
     fitnesses = [x[1] for x in popRanked]
+
+    # Suma total de fitness
     suma = sum(fitnesses)
 
+    # Calcular probabilidades
     probs = [f / suma for f in fitnesses]
 
+    # Se selecciona el resto
     for _ in range(len(popRanked) - eliteSize):
 
         pick = random.random()
         actual = 0
 
         for i in range(len(popRanked)):
+
             actual += probs[i]
 
+            # Se elije al individuo segun probabilidad
             if actual >= pick:
                 resultados.append(popRanked[i][0])
                 break
@@ -106,7 +144,11 @@ def seleccion(popRanked, eliteSize):
     return resultados
 
 
+# ------------------------------------------------------------
+# Crea mating pool
+# grupo de padres para reproducción
 def matingPool(poblacion, resultadosSeleccion):
+
     pool = []
 
     for i in resultadosSeleccion:
@@ -115,19 +157,25 @@ def matingPool(poblacion, resultadosSeleccion):
     return pool
 
 
+# ------------------------------------------------------------
+# Cruce (Crossover)
+# Combina dos padres para crear un hijo
 def crossover(parent1, parent2):
 
     child = []
 
+    # Selecciona un segmento aleatorio
     inicio = int(random.random() * len(parent1))
     fin = int(random.random() * len(parent1))
 
     startGene = min(inicio, fin)
     endGene = max(inicio, fin)
 
+    # Copia genes del padre 1
     for i in range(startGene, endGene):
         child.append(parent1[i])
 
+    # Completa con genes del padre 2 sin repetir ciudades
     childP2 = [item for item in parent2 if item not in child]
 
     child.extend(childP2)
@@ -135,19 +183,25 @@ def crossover(parent1, parent2):
     return child
 
 
+# ------------------------------------------------------------
+# Aplica crossover a toda la población
 def crossoverPoblacion(pool, eliteSize):
 
     hijos = []
 
+    # Cantidad de hijos a generar
     length = len(pool) - eliteSize
 
+    # Mezcla individuos
     mezcla = random.sample(pool, len(pool))
 
-    # conservar elite
+    # ---------------------------
+    # Conserva élite
     for i in range(eliteSize):
         hijos.append(pool[i])
 
-    # crossover
+    # ---------------------------
+    # Genera hijos
     for i in range(length):
 
         child = crossover(
@@ -160,14 +214,19 @@ def crossoverPoblacion(pool, eliteSize):
     return hijos
 
 
+# ------------------------------------------------------------
+# Mutación
+# Intercambia ciudades aleatoriamente
 def mutacion(individuo, mutationRate):
 
     for swapped in range(len(individuo)):
 
+        # Aplica mutación segun probabilidad
         if random.random() < mutationRate:
 
             swapWith = int(random.random() * len(individuo))
 
+            # Intercambia posiciones
             ciudad1 = individuo[swapped]
             ciudad2 = individuo[swapWith]
 
@@ -177,41 +236,71 @@ def mutacion(individuo, mutationRate):
     return individuo
 
 
+# ------------------------------------------------------------
+# Aplica mutación a toda la población
 def mutacionPoblacion(poblacion, mutationRate):
 
     poblacionMutada = []
 
     for individuo in poblacion:
-        poblacionMutada.append(mutacion(individuo, mutationRate))
+        poblacionMutada.append(
+            mutacion(individuo, mutationRate)
+        )
 
     return poblacionMutada
 
 
-def siguienteGeneracion(actualGen, eliteSize, mutationRate):
+# ------------------------------------------------------------
+# Se crea la siguiente generación
+def siguienteGeneracion(actualGen,
+                        eliteSize,
+                        mutationRate):
 
+    # Ordena rutas
     popRanked = rankRutas(actualGen)
 
-    seleccionResultados = seleccion(popRanked, eliteSize)
+    # Selecciona mejores individuos
+    seleccionResultados = seleccion(
+        popRanked,
+        eliteSize
+    )
 
-    pool = matingPool(actualGen, seleccionResultados)
+    # Crea grupo de padres
+    pool = matingPool(
+        actualGen,
+        seleccionResultados
+    )
 
-    hijos = crossoverPoblacion(pool, eliteSize)
+    # Genera hijos
+    hijos = crossoverPoblacion(
+        pool,
+        eliteSize
+    )
 
-    siguienteGen = mutacionPoblacion(hijos, mutationRate)
+    # Se aplica mutación
+    siguienteGen = mutacionPoblacion(
+        hijos,
+        mutationRate
+    )
 
     return siguienteGen
 
 
+# ------------------------------------------------------------
+# ALGORITMO GENÉTICO PRINCIPAL
 def algoritmoGenetico(
         tamanoPoblacion,
         eliteSize,
         mutationRate,
         generaciones):
 
+    # Crea población inicial
     poblacion = poblacionInicial(tamanoPoblacion)
 
+    # Lista para guardar progreso
     progreso = []
 
+    # Se ejecutan generaciones
     for i in range(generaciones):
 
         poblacion = siguienteGeneracion(
@@ -220,30 +309,41 @@ def algoritmoGenetico(
             mutationRate
         )
 
+        # Obtiene mejor distancia
         mejorDistancia = 1 / rankRutas(poblacion)[0][1]
 
         progreso.append(mejorDistancia)
 
+    # Obtiene mejor ruta final
     mejorIndice = rankRutas(poblacion)[0][0]
 
     mejorRuta = poblacion[mejorIndice]
 
-    print("\nDistancia Final:", distanciaRuta(mejorRuta))
+    print("\nDistancia Final:",
+          distanciaRuta(mejorRuta))
 
     return mejorRuta, progreso
 
 
-# Ejecución
+# ============================================================
+# EJECUCIÓN PRINCIPAL
+
 if __name__ == "__main__":
+
+    # Ejecuta algoritmo genetico
     mejorRuta, progreso = algoritmoGenetico(
         tamanoPoblacion=50,
         eliteSize=5,
         mutationRate=0.01,
         generaciones=10
     )
+
+    # Muestra mejor ruta encontrada
     print("Mejor ruta:", mejorRuta)
 
-    # Gráfica de evolución
+    # ========================================================
+    # GRÁFICA DE EVOLUCIÓN
+    
     plt.plot(progreso)
 
     plt.title("Evolución del Algoritmo Genético")
@@ -251,11 +351,12 @@ if __name__ == "__main__":
     plt.ylabel("Distancia")
 
     plt.show()
-    # Gráfica de la ruta óptima
 
-    # Coordenadas simuladas SOLO para visualizar
-    # (No afectan el algoritmo genético)
-
+    # ========================================================
+    # GRÁFICA DE LA RUTA ÓPTIMA
+    
+    # Coordenadas simuladas para visualizar ciudades
+    
     coordenadas = {
         "Madrid": (5,8),
         "Barcelona": (9,9),
@@ -279,25 +380,29 @@ if __name__ == "__main__":
         "Elche": (8,4)
     }
 
-    # Obtener coordenadas de la mejor ruta
+    # Listas para coordenadas X y Y
     x = []
     y = []
 
+    # Se obtiene coordenadas de cada ciudad
     for ciudad in mejorRuta:
+
         x.append(coordenadas[ciudad][0])
         y.append(coordenadas[ciudad][1])
 
-    # Regresar al punto inicial
+    # Regresa al punto inicial
     x.append(coordenadas[mejorRuta[0]][0])
     y.append(coordenadas[mejorRuta[0]][1])
 
-    # Crear gráfica
+    # Crea gráfica
     plt.figure(figsize=(12,8))
 
+    # Dibuja ruta
     plt.plot(x, y, 'o-')
 
-    # Etiquetas
+    # Muestra nombres de ciudades
     for ciudad in mejorRuta:
+
         plt.text(
             coordenadas[ciudad][0],
             coordenadas[ciudad][1],
@@ -312,13 +417,17 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # Mostrar ruta en formato bonito
-
+    # ========================================================
+    # MOSTRAR RESULTADOS FINALES
+    
     print("\n==============================")
     print(" RUTA RECOMENDADA ")
     print("==============================\n")
 
+    # Convertir lista en texto bonito
     rutaTexto = " → ".join(mejorRuta)
+
+    # Agrega regreso al inicio
     rutaTexto += " → " + mejorRuta[0]
 
     print(rutaTexto)
